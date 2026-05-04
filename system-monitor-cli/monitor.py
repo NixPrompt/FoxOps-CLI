@@ -3,7 +3,11 @@ import logging
 import sys
 from pathlib import Path
 
-from monitor_checks import CheckResult, check_host_ping, check_port_open
+from check_result import CheckResult
+from hardening_checks import check_windows_account_hardening
+from network_checks import check_host_ping, check_port_open
+from output_format import format_details, format_json_results, format_text_result
+from result_policy import EXIT_RUNTIME_ERROR, exit_code_for_results, normalize_hosts
 
 
 def configure_logging(log_file: Path) -> None:
@@ -17,26 +21,40 @@ def configure_logging(log_file: Path) -> None:
 
 
 def log_result(result: CheckResult) -> None:
-    status = "OK" if result.ok else "FAIL"
+    detail_text = format_details(result)
     logging.info(
-        "check=%s target=%s status=%s message=%s",
-        result.name,
-        result.target,
-        status,
+        "check=%s status=%s %s message=%s",
+        result.check_id,
+        result.status,
+        detail_text,
         result.message,
     )
 
 
 def print_result(result: CheckResult) -> None:
-    status = "OK" if result.ok else "FAIL"
-    print(f"[{status}] {result.name} {result.target} - {result.message}")
+    print(format_text_result(result))
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Simple host and TCP port monitoring checks.")
-    parser.add_argument("--host", required=True, help="Hostname or IP address to check.")
+    parser.add_argument(
+        "--host",
+        action="append",
+        help="Hostname or IP address to check. Repeat or comma-separate for multiple hosts.",
+    )
     parser.add_argument("--port", type=int, default=443, help="TCP port to check. Default: 443.")
     parser.add_argument("--timeout", type=int, default=3, help="Timeout in seconds. Default: 3.")
+    parser.add_argument(
+        "--output",
+        choices=["text", "json"],
+        default="text",
+        help="Output format. Default: text.",
+    )
+    parser.add_argument(
+        "--hardening",
+        action="store_true",
+        help="Run read-only Windows local account hardening checks.",
+    )
     parser.add_argument(
         "--log-file",
         type=Path,
@@ -48,23 +66,36 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    hosts = normalize_hosts(args.host)
+
+    if not hosts and not args.hardening:
+        print("[FAIL] provide --host, --hardening, or both", file=sys.stderr)
+        return EXIT_RUNTIME_ERROR
 
     try:
         configure_logging(args.log_file)
     except Exception as exc:
         print(f"[FAIL] logging setup failed: {exc}", file=sys.stderr)
-        return 2
+        return EXIT_RUNTIME_ERROR
 
-    checks = [
-        check_host_ping(args.host, args.timeout),
-        check_port_open(args.host, args.port, args.timeout),
-    ]
+    checks = []
+
+    for host in hosts:
+        checks.extend([check_host_ping(host, args.timeout), check_port_open(host, args.port, args.timeout)])
+
+    if args.hardening:
+        checks.extend(check_windows_account_hardening())
+
+    if args.output == "json":
+        print(format_json_results(checks))
+    else:
+        for result in checks:
+            print_result(result)
 
     for result in checks:
-        print_result(result)
         log_result(result)
 
-    return 0 if all(result.ok for result in checks) else 1
+    return exit_code_for_results(checks)
 
 
 if __name__ == "__main__":
@@ -75,4 +106,4 @@ if __name__ == "__main__":
         raise SystemExit(130)
     except Exception as exc:
         print(f"[FAIL] unexpected error: {exc}", file=sys.stderr)
-        raise SystemExit(2)
+        raise SystemExit(EXIT_RUNTIME_ERROR)
