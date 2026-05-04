@@ -14,6 +14,8 @@ system-monitor-cli/
   network_checks.py    # Ping and TCP port checks
   output_format.py     # Text and JSON renderers
   result_policy.py     # Host normalization, summaries, exit codes
+  docs/
+    TRUST_BOUNDARIES.md
   README.md
 ```
 
@@ -67,6 +69,9 @@ On Windows, use `py`, `python`, or a full Python path depending on your local PA
 
 Hardening mode is audit-only. It reads local Windows state and does not change users,
 password policy, firewall rules, services, or registry settings.
+
+Windows hardening checks should be run from Windows PowerShell, not WSL, unless you are
+explicitly using WSL as a bridge to call `powershell.exe`.
 
 Baseline policy:
 
@@ -134,6 +139,14 @@ It also groups network results by host so automation does not need to parse targ
 
 If run on WSL, Linux, macOS, or a Windows host without required commands, the audit reports
 `WARN` and exits cleanly.
+
+## Trust Boundaries
+
+Network checks are cross-platform and describe connectivity from the runner's point of view.
+Windows hardening checks trust Windows PowerShell only. Linux hardening should live in a
+separate module later.
+
+See [docs/TRUST_BOUNDARIES.md](docs/TRUST_BOUNDARIES.md) for the full trust model.
 
 ## Logging
 
