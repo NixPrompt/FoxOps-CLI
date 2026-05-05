@@ -27,6 +27,6 @@ def summarize_results(results: list[CheckResult]) -> dict[str, int]:
 
 
 def exit_code_for_results(results: list[CheckResult]) -> int:
-    if all(result.ok for result in results):
-        return EXIT_OK
-    return EXIT_FINDINGS
+    if any(result.status == "FAIL" for result in results):
+        return EXIT_FINDINGS
+    return EXIT_OK

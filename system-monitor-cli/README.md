@@ -165,7 +165,7 @@ monitor.log
 ## Exit Codes
 
 ```text
-0  All checks returned OK
-1  One or more checks returned WARN or FAIL
+0  All checks returned OK or WARN only
+1  One or more checks returned FAIL
 2  CLI/runtime error before checks could complete
 ```
