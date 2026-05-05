@@ -180,7 +180,7 @@ Example text output:
 Use JSON for automation:
 
 ```powershell
-python .\monitor.py --host google.com --hardening --output json
+python .\monitor.py --host example.com --port 443 --output json
 ```
 
 JSON includes a summary, grouped results, and the full flat result list:
@@ -188,40 +188,70 @@ JSON includes a summary, grouped results, and the full flat result list:
 ```json
 {
   "summary": {
-    "OK": 6,
+    "OK": 2,
     "WARN": 0,
-    "FAIL": 1
+    "FAIL": 0
   },
   "groups": {
     "hosts": {
-      "google.com": [
+      "example.com": [
         {
-          "check_id": "ping.google.com",
+          "check_id": "ping.example.com",
+          "name": "ping",
+          "target": "example.com",
           "status": "OK",
+          "message": "host responded to ping",
           "details": {
-            "host": "google.com",
+            "host": "example.com",
+            "timeout": 3
+          }
+        },
+        {
+          "check_id": "tcp_port.example.com:443",
+          "name": "tcp_port",
+          "target": "example.com:443",
+          "status": "OK",
+          "message": "port is open",
+          "details": {
+            "host": "example.com",
+            "port": 443,
             "timeout": 3
           }
         }
       ]
     },
-    "hardening": [
-      {
-        "check_id": "account_policy.min_password_length",
-        "status": "FAIL",
-        "details": {
-          "actual": 0,
-          "required": ">=12"
-        }
-      }
-    ]
+    "hardening": []
   },
-  "results": []
+  "results": [
+    {
+      "check_id": "ping.example.com",
+      "name": "ping",
+      "target": "example.com",
+      "status": "OK",
+      "message": "host responded to ping",
+      "details": {
+        "host": "example.com",
+        "timeout": 3
+      }
+    },
+    {
+      "check_id": "tcp_port.example.com:443",
+      "name": "tcp_port",
+      "target": "example.com:443",
+      "status": "OK",
+      "message": "port is open",
+      "details": {
+        "host": "example.com",
+        "port": 443,
+        "timeout": 3
+      }
+    }
+  ]
 }
 ```
 
-See [`examples/sample-output.json`](examples/sample-output.json) for a complete
-network-only JSON example.
+See [`examples/sample-output.json`](examples/sample-output.json) for the same
+network-only JSON example as a standalone file.
 
 ## Logging
 
