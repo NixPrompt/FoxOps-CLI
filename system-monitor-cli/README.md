@@ -58,6 +58,12 @@ system-monitor-cli/
 
 ## Quick Start
 
+Canonical demo command:
+
+```powershell
+python .\monitor.py --hosts-file .\examples\hosts.txt --port 443 --workers 4 --output json
+```
+
 Run a network check:
 
 ```powershell
@@ -253,6 +259,40 @@ pytest
 ```
 
 GitHub Actions runs the pytest suite on push and pull request.
+
+## Troubleshooting
+
+### Python Not Found
+
+On Windows, `python` may not be on `PATH`. Try the Python launcher:
+
+```powershell
+py .\monitor.py --host google.com --port 443
+```
+
+You can also use a full path to a Python executable.
+
+### Ping Unavailable
+
+If the runner cannot execute `ping`, the ping check reports `WARN` and the TCP
+port check still runs. This keeps the network check useful on stripped-down
+hosts or locked-down shells.
+
+### PowerShell Vs WSL Hardening
+
+Windows hardening checks should be run from Windows PowerShell:
+
+```powershell
+python .\monitor.py --hardening --output json
+```
+
+If you run from WSL or another non-Windows context, FoxOps reports a `WARN`
+capability result instead of claiming Windows authority.
+
+### Missing Hosts File
+
+If `--hosts-file` points to a missing or unreadable file, FoxOps prints a clear
+`[FAIL]` message to stderr and exits with runtime error code `2`.
 
 ## Roadmap
 
