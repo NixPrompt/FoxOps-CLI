@@ -58,6 +58,7 @@
 - Add DNS resolution check
 - Add HTTP status check
 - Add TLS certificate expiry check
+- Consider case-insensitive host deduplication while preserving first spelling
 - Add per-host JSON summaries
 - Add timeout/retry policy
 
