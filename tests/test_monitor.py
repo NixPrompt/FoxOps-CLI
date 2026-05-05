@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import pytest
 
@@ -50,6 +51,36 @@ def test_normalize_urls_strips_empty_values():
         "https://example.com",
         "http://status.local",
     ]
+
+
+def test_write_output_file_creates_parent_directories(monkeypatch):
+    calls = []
+
+    def fake_mkdir(self, parents=False, exist_ok=False):
+        calls.append(("mkdir", self, parents, exist_ok))
+
+    def fake_write_text(self, text, encoding=None):
+        calls.append(("write_text", self, text, encoding))
+
+    monkeypatch.setattr(Path, "mkdir", fake_mkdir)
+    monkeypatch.setattr(Path, "write_text", fake_write_text)
+
+    monitor.write_output_file(Path("nested") / "reports" / "run.json", '{"summary": {}}')
+
+    assert calls == [
+        ("mkdir", Path("nested") / "reports", True, True),
+        ("write_text", Path("nested") / "reports" / "run.json", '{"summary": {}}\n', "utf-8"),
+    ]
+
+
+def test_write_output_file_raises_clear_os_error_for_unwritable_path(monkeypatch):
+    def fake_write_text(self, text, encoding=None):
+        raise OSError("no write access")
+
+    monkeypatch.setattr(Path, "write_text", fake_write_text)
+
+    with pytest.raises(OSError):
+        monitor.write_output_file(Path("report.json"), '{"summary": {}}')
 
 
 def test_run_web_checks_preserves_submission_order(monkeypatch):

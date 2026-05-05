@@ -122,6 +122,11 @@ def parse_args() -> argparse.Namespace:
         help="Output format. Default: text.",
     )
     parser.add_argument(
+        "--output-file",
+        type=Path,
+        help="Write JSON output to this file path when --output json is used.",
+    )
+    parser.add_argument(
         "--hardening",
         action="store_true",
         help="Run read-only Windows local account hardening checks.",
@@ -135,8 +140,17 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def write_output_file(output_file: Path, payload: str) -> None:
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(f"{payload}\n", encoding="utf-8")
+
+
 def main() -> int:
     args = parse_args()
+    if args.output_file and args.output != "json":
+        print("[FAIL] --output-file requires --output json", file=sys.stderr)
+        return EXIT_RUNTIME_ERROR
+
     hosts_from_file = []
     if args.hosts_file:
         try:
@@ -168,14 +182,22 @@ def main() -> int:
     if args.hardening:
         checks.extend(check_windows_account_hardening())
 
+    for result in checks:
+        log_result(result)
+
     if args.output == "json":
-        print(format_json_results(checks))
+        json_payload = format_json_results(checks)
+        if args.output_file:
+            try:
+                write_output_file(args.output_file, json_payload)
+            except OSError as exc:
+                logging.error("output_file_write_failed path=%s error=%s", args.output_file, exc)
+                print(f"[FAIL] could not write output file {args.output_file}: {exc}", file=sys.stderr)
+                return EXIT_RUNTIME_ERROR
+        print(json_payload)
     else:
         for result in checks:
             print_result(result)
-
-    for result in checks:
-        log_result(result)
 
     return exit_code_for_results(checks)
 

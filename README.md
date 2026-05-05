@@ -37,6 +37,7 @@ perform remediation.
   - Host-grouped network results
   - Hardening result group
   - Flat result list
+  - Optional JSON file output with parent directory creation
 
 ## Project Layout
 
@@ -85,6 +86,12 @@ Run checks from a hosts file:
 
 ```powershell
 python .\monitor.py --hosts-file .\hosts.txt --port 443 --output json
+```
+
+Write JSON to a file while keeping JSON on stdout:
+
+```powershell
+python .\monitor.py --hosts-file .\hosts.txt --port 443 --output json --output-file .\reports\latest.json
 ```
 
 Run web checks for an HTTP or HTTPS URL:
@@ -207,6 +214,17 @@ Use JSON for automation:
 ```powershell
 python .\monitor.py --host example.com --port 443 --output json
 ```
+
+Persist the same JSON payload to a file:
+
+```powershell
+python .\monitor.py --host example.com --port 443 --output json --output-file .\reports\example.json
+```
+
+FoxOps creates parent directories for `--output-file` when possible. If the
+file cannot be written, it prints a clear `[FAIL]` message to stderr and exits
+with runtime error code `2`. Output files are currently supported for JSON runs
+only.
 
 JSON includes a summary, grouped results, and the full flat result list:
 
