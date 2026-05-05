@@ -6,7 +6,7 @@ from pathlib import Path
 
 from check_result import CheckResult
 from hardening_checks import check_windows_account_hardening
-from network_checks import check_host_ping, check_port_open
+from network_checks import check_dns_resolution, check_host_ping, check_port_open
 from output_format import format_details, format_json_results, format_text_result
 from result_policy import EXIT_RUNTIME_ERROR, dedupe_hosts, exit_code_for_results, load_hosts_file, normalize_hosts
 
@@ -45,6 +45,7 @@ def positive_int(value: str) -> int:
 
 def run_host_checks(host: str, port: int, timeout: int) -> list[CheckResult]:
     return [
+        check_dns_resolution(host, timeout),
         check_host_ping(host, timeout),
         check_port_open(host, port, timeout),
     ]

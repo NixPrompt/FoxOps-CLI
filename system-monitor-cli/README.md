@@ -14,6 +14,7 @@ perform remediation.
 ## Current Capabilities
 
 - Cross-platform network checks:
+  - DNS resolution
   - ICMP ping
   - TCP port reachability
   - Repeated or comma-separated multi-host input
@@ -43,7 +44,7 @@ system-monitor-cli/
   hardening_checks.py   # Read-only Windows account and password policy checks
   monitor.py            # CLI entry point, logging, orchestration
   monitor_checks.py     # Compatibility exports
-  network_checks.py     # Ping and TCP port checks
+  network_checks.py     # DNS, ping, and TCP port checks
   output_format.py      # Text and JSON renderers
   result_policy.py      # Host normalization, summaries, exit codes
   examples/
@@ -188,13 +189,28 @@ JSON includes a summary, grouped results, and the full flat result list:
 ```json
 {
   "summary": {
-    "OK": 2,
+    "OK": 3,
     "WARN": 0,
     "FAIL": 0
   },
   "groups": {
     "hosts": {
       "example.com": [
+        {
+          "check_id": "dns_resolution.example.com",
+          "name": "dns_resolution",
+          "target": "example.com",
+          "status": "OK",
+          "message": "resolved 2 address(es)",
+          "details": {
+            "host": "example.com",
+            "timeout": 3,
+            "addresses": [
+              "93.184.216.34",
+              "2606:2800:220:1:248:1893:25c8:1946"
+            ]
+          }
+        },
         {
           "check_id": "ping.example.com",
           "name": "ping",
@@ -223,6 +239,21 @@ JSON includes a summary, grouped results, and the full flat result list:
     "hardening": []
   },
   "results": [
+    {
+      "check_id": "dns_resolution.example.com",
+      "name": "dns_resolution",
+      "target": "example.com",
+      "status": "OK",
+      "message": "resolved 2 address(es)",
+      "details": {
+        "host": "example.com",
+        "timeout": 3,
+        "addresses": [
+          "93.184.216.34",
+          "2606:2800:220:1:248:1893:25c8:1946"
+        ]
+      }
+    },
     {
       "check_id": "ping.example.com",
       "name": "ping",

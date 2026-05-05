@@ -5,6 +5,32 @@ import subprocess
 from check_result import CheckResult
 
 
+def check_dns_resolution(host: str, timeout: int) -> CheckResult:
+    """Check whether a host resolves to one or more IP addresses."""
+    details = {"host": host, "timeout": timeout}
+
+    try:
+        address_info = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        return CheckResult("dns_resolution", host, "FAIL", f"DNS resolution failed: {exc}", details)
+    except OSError as exc:
+        return CheckResult("dns_resolution", host, "FAIL", f"DNS resolution failed: {exc}", details)
+    except Exception as exc:
+        return CheckResult("dns_resolution", host, "FAIL", f"unexpected DNS error: {exc}", details)
+
+    addresses = sorted({info[4][0] for info in address_info if info[4]})
+    if not addresses:
+        return CheckResult("dns_resolution", host, "FAIL", "DNS resolution returned no addresses", details)
+
+    return CheckResult(
+        "dns_resolution",
+        host,
+        "OK",
+        f"resolved {len(addresses)} address(es)",
+        {**details, "addresses": addresses},
+    )
+
+
 def check_host_ping(host: str, timeout: int) -> CheckResult:
     """Check whether a host responds to ping."""
     system = platform.system().lower()

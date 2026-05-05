@@ -1,12 +1,27 @@
 {
   "summary": {
-    "OK": 2,
+    "OK": 3,
     "WARN": 0,
     "FAIL": 0
   },
   "groups": {
     "hosts": {
       "example.com": [
+        {
+          "check_id": "dns_resolution.example.com",
+          "name": "dns_resolution",
+          "target": "example.com",
+          "status": "OK",
+          "message": "resolved 2 address(es)",
+          "details": {
+            "host": "example.com",
+            "timeout": 3,
+            "addresses": [
+              "93.184.216.34",
+              "2606:2800:220:1:248:1893:25c8:1946"
+            ]
+          }
+        },
         {
           "check_id": "ping.example.com",
           "name": "ping",
@@ -35,6 +50,21 @@
     "hardening": []
   },
   "results": [
+    {
+      "check_id": "dns_resolution.example.com",
+      "name": "dns_resolution",
+      "target": "example.com",
+      "status": "OK",
+      "message": "resolved 2 address(es)",
+      "details": {
+        "host": "example.com",
+        "timeout": 3,
+        "addresses": [
+          "93.184.216.34",
+          "2606:2800:220:1:248:1893:25c8:1946"
+        ]
+      }
+    },
     {
       "check_id": "ping.example.com",
       "name": "ping",
