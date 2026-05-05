@@ -1,10 +1,13 @@
-# System Monitor CLI
+# FoxOps Audit Tools
 
 A dependency-free Python CLI for auditing network reachability and local Windows
 hardening posture against defined baselines.
 
 The tool is designed for NOC/SOC-style checks: readable console output, structured JSON for
 automation, timestamped logs, clear exit codes, and no automatic remediation.
+
+Disclaimer: this tool reports specific observed findings from the runner's point of view. It
+does not prove a system is secure, replace endpoint protection, or perform remediation.
 
 ## Current Capabilities
 
