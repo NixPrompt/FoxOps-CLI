@@ -61,7 +61,7 @@ def test_monitor_json_success_path_reports_expected_cli_structure():
     payload = json.loads(completed.stdout)
     assert set(payload) == {"summary", "groups", "results"}
     assert set(payload["summary"]) >= {"OK", "WARN", "FAIL"}
-    assert set(payload["groups"]) == {"hosts", "hardening"}
+    assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
     assert len(payload["results"]) == 3
     assert [result["name"] for result in payload["results"]] == ["dns_resolution", "ping", "tcp_port"]
@@ -103,6 +103,7 @@ def test_monitor_json_accepts_hosts_file():
 
     payload = json.loads(completed.stdout)
     assert set(payload) == {"summary", "groups", "results"}
+    assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
     assert [result["name"] for result in payload["results"]] == ["dns_resolution", "ping", "tcp_port"]
 

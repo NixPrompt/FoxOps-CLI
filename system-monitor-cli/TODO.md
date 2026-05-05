@@ -94,7 +94,6 @@ Goal: let operators choose repeatable check sets without changing code.
   - lockout threshold
   - lockout duration
   - lockout window
-  - TLS expiry warning days
 
 ## Phase 6: Make It Portfolio-Grade
 

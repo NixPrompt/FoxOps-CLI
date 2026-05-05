@@ -10,6 +10,9 @@ from urllib.request import Request, urlopen
 from check_result import CheckResult
 
 
+TLS_EXPIRY_WARN_DAYS = 30
+
+
 def check_dns_resolution(host: str, timeout: int) -> CheckResult:
     """Check whether a host resolves to one or more IP addresses."""
     details = {"host": host, "timeout": timeout}
@@ -158,6 +161,14 @@ def check_tls_certificate_expiry(url: str, timeout: int) -> CheckResult:
 
     if expires_at <= now:
         return CheckResult("tls_certificate", url, "FAIL", "TLS certificate is expired", result_details)
+    if days_remaining <= TLS_EXPIRY_WARN_DAYS:
+        return CheckResult(
+            "tls_certificate",
+            url,
+            "WARN",
+            f"TLS certificate expires in {days_remaining} day(s)",
+            result_details,
+        )
     return CheckResult(
         "tls_certificate",
         url,

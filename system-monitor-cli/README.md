@@ -157,6 +157,8 @@ setup.
 - URL checks use HTTP `HEAD` requests and read-only TLS certificate inspection.
 - TLS certificate checks run for HTTPS URLs. HTTP URLs report a `WARN` skip for
   TLS.
+- TLS certificate status is `FAIL` when expired, `WARN` when expiring in 30 days
+  or less, and `OK` beyond that window.
 - Windows hardening checks should be run from Windows PowerShell.
 - If hardening cannot run on the current host, the tool reports `WARN` and exits
   cleanly.
@@ -247,6 +249,7 @@ JSON includes a summary, grouped results, and the full flat result list:
         }
       ]
     },
+    "urls": {},
     "hardening": []
   },
   "results": [

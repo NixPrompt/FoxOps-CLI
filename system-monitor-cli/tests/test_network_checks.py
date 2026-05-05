@@ -1,4 +1,5 @@
 import socket
+from datetime import datetime, timezone
 from urllib.error import HTTPError
 
 import network_checks
@@ -151,6 +152,45 @@ def test_check_tls_certificate_expiry_returns_fail_for_expired_certificate(monke
     assert result.name == "tls_certificate"
     assert result.status == "FAIL"
     assert result.message == "TLS certificate is expired"
+
+
+def test_check_tls_certificate_expiry_warns_when_certificate_expires_soon(monkeypatch):
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+    class RawSocket:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+    class TlsSocket:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+        def getpeercert(self):
+            return {"notAfter": "Jan 16 00:00:00 2026 GMT"}
+
+    class Context:
+        def wrap_socket(self, raw_socket, server_hostname):
+            return TlsSocket()
+
+    monkeypatch.setattr(network_checks, "datetime", FixedDatetime)
+    monkeypatch.setattr(network_checks.socket, "create_connection", lambda address, timeout: RawSocket())
+    monkeypatch.setattr(network_checks.ssl, "create_default_context", lambda: Context())
+
+    result = check_tls_certificate_expiry("https://example.com", timeout=3)
+
+    assert result.name == "tls_certificate"
+    assert result.status == "WARN"
+    assert result.message == "TLS certificate expires in 15 day(s)"
+    assert result.details["days_remaining"] == 15
 
 
 def test_check_tls_certificate_expiry_warns_for_non_https_url():
