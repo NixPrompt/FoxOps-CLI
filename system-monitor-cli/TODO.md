@@ -1,106 +1,131 @@
-# TODO
+# FoxOps-CLI Roadmap
 
-## Next: Stabilize Core Contracts
+FoxOps-CLI should stay safe, read-only, deterministic, and useful for NOC-style
+triage. Each phase should leave the tool cloneable, runnable, and explainable.
 
-- Add tests for `result_policy.py`
-  - OK/WARN-only results exit `0`
-  - any FAIL exits `1`
-  - runtime errors use runtime error code
-- Add tests for `output_format.py`
-  - text output includes status, check_id, details, message
-  - JSON output includes summary, groups, and results
-- Add tests for `hardening_checks.py`
-  - non-Windows hardening returns WARN
-  - `net accounts` parsing handles `None` and numeric values
-- Add sample fixtures for Windows command output
+## Phase 1: Make It Usable And Demoable
 
-## Automation / CI
+Goal: someone can clone it, run it, and immediately understand what it does.
 
-- Add GitHub Actions workflow
-  - run tests on Linux
-  - run tests on Windows
-  - run import/smoke test for `monitor.py`
-- Add a daily/weekly automation prompt for:
-  - regression scan
-  - proposal scan
-  - TODO consistency scan
+- Keep README examples current for:
+  - single-host checks
+  - comma-separated hosts
+  - `--hosts-file`
+  - `--workers`
+  - JSON output
+  - Windows hardening
+- Add troubleshooting notes:
+  - Python not found
+  - ping unavailable
+  - PowerShell vs WSL hardening behavior
+  - missing or unreadable hosts file
+- Add sample fixtures:
+  - `examples/hosts.txt`
+  - example JSON output
+  - example log output
+- Keep tests and GitHub Actions healthy:
+  - Linux pytest run
+  - Windows pytest run
+  - import/smoke test for `monitor.py`
+- Add sample Windows command-output fixtures for hardening parser tests.
 
-## Trust Boundary Improvements
+## Phase 2: Add NOC Runbook Features
 
-- Add explicit runner/source metadata to results
+Goal: make it feel like a tiny CLI version of how a NOC tech thinks.
+
+- Add DNS resolution check.
+- Add HTTP status check.
+- Add TLS certificate expiry check.
+- Add timeout/retry policy with conservative defaults.
+- Consider optional streaming or fail-fast execution mode for incident workflows.
+- Consider case-insensitive host deduplication while preserving first spelling.
+- Improve WARN messages so skipped checks clearly explain what to do next.
+- Keep network output deterministic unless an explicit streaming mode is added.
+
+## Phase 3: Make It Ticket/Evidence Friendly
+
+Goal: turn checks into artifacts.
+
+- Add `--output-file` for JSON evidence capture.
+- Add per-host JSON summaries.
+- Add runner/source metadata to results:
   - `source=local_runner`
   - `source=windows_powershell`
   - `source=wsl`
   - `source=linux_native`
-- Add environment detection helper
-  - Windows
-  - Linux
-  - WSL
-  - unknown
-- Make WARN skip messages explain the trust boundary
+- Add timestamp and command metadata to evidence output.
+- Add optional markdown summary report for tickets.
+- Keep the stable JSON schema: `summary`, `groups`, `results`.
 
-## Windows Audit Expansion
+## Phase 4: Add Windows And Linux Admin Audit Depth
 
-- Add SMB/File Sharing audit checks
-  - check `LanmanServer`
-  - check File and Printer Sharing firewall rules
-- Add Defender status audit
-  - real-time protection status
-  - tamper protection if available
-- Add firewall profile audit
-  - domain/private/public enabled status
-- Add local admin group audit
-  - list local Administrators group members
-  - WARN on unexpected accounts
+Goal: expand audit coverage while keeping it safe and read-only.
 
-## Network Checks
-
-- Add DNS resolution check
-- Add HTTP status check
-- Add TLS certificate expiry check
-- Consider case-insensitive host deduplication while preserving first spelling
-- Add per-host JSON summaries
-- Add timeout/retry policy
-- Consider optional streaming or fail-fast execution mode for incident workflows
-
-## Linux / WSL Expansion
-
-- Add `linux_hardening_checks.py`
-- Start with read-only checks:
+- Expand Windows audit checks:
+  - SMB/File Sharing service state
+  - File and Printer Sharing firewall rules
+  - Defender real-time protection status
+  - firewall profile status
+  - local Administrators group members
+- Add `linux_hardening_checks.py` for local Linux audits:
   - `/etc/os-release`
   - `/etc/login.defs`
   - SSH password auth setting
   - listening ports with `ss`
-- Add WSL-specific caveats:
+  - local user and group context
+- Add WSL-aware messages:
   - WSL can audit Linux state
-  - WSL should not claim Windows authority unless bridging
+  - WSL should not claim Windows authority unless bridging to PowerShell
+- Do not add SSH remote audit until local Linux behavior is mature.
 
-## Configurable Baselines
+## Phase 5: Add Profiles
 
-- Add optional `baseline.json`
-- Keep safe defaults in code
-- Allow custom thresholds for:
+Goal: let operators choose repeatable check sets without changing code.
+
+- Add optional profile configuration.
+- Keep safe defaults in code.
+- Validate profile schema before use.
+- Support named profiles such as:
+  - `network-basic`
+  - `windows-hardening`
+  - `linux-hardening`
+  - `ticket-evidence`
+- Allow configurable baselines for:
   - password length
   - lockout threshold
   - lockout duration
   - lockout window
-- Validate baseline schema before use
+  - TLS expiry warning days
 
-## Documentation
+## Phase 6: Make It Portfolio-Grade
 
-- Add JSON output examples
-- Add Windows PowerShell examples
-- Add WSL/Linux examples
-- Add "What this tool does not prove" section
-- Add troubleshooting section:
-  - Python not found
-  - WSL path issues
-  - PowerShell vs WSL hardening behavior
+Goal: make FoxOps-CLI look and feel like a production-quality security/NOC tool.
+
+- Add polished docs:
+  - architecture overview
+  - trust-boundary guide
+  - sample runbook workflows
+  - "What this tool does not prove"
+  - screenshots or terminal captures
+- Add release hygiene:
+  - changelog
+  - version flag
+  - tagged releases
+  - packaging notes
+- Add CI polish:
+  - linting
+  - Windows and Linux test matrix
+  - coverage report
+- Add automation prompts for:
+  - regression scan
+  - TODO consistency scan
+  - docs consistency scan
+  - CI failure triage
 
 ## Future Design Only: Fix Mode
 
-- Do not implement `--fix` yet
-- Add `docs/FIX_MODE_DESIGN.md` before any remediation code
+- Do not implement `--fix` yet.
+- Add `docs/FIX_MODE_DESIGN.md` before any remediation code.
 - Define:
   - allowed fixes
   - blocked fixes
@@ -111,7 +136,7 @@
   - verification after change
   - rollback notes
 
-## Explicitly Out of Scope For Now
+## Explicitly Out Of Scope For Now
 
 - Automatic remediation
 - Password changes
@@ -120,4 +145,6 @@
 - Removing admin rights
 - Exploit testing
 - LAN scanning
+- Credential harvesting
+- Remote SSH administration
 - "System secure" claims
