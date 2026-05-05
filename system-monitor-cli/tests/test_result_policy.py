@@ -6,6 +6,7 @@ import pytest
 from result_policy import (
     EXIT_FINDINGS,
     EXIT_OK,
+    dedupe_hosts,
     exit_code_for_results,
     load_hosts_file,
     normalize_hosts,
@@ -29,6 +30,33 @@ def test_normalize_hosts_handles_missing_or_empty_input():
     assert normalize_hosts(None) == []
     assert normalize_hosts([]) == []
     assert normalize_hosts([" , "]) == []
+
+
+def test_dedupe_hosts_preserves_first_occurrence_order():
+    assert dedupe_hosts(["web-01", "db-01", "web-01", "cache-01", "db-01"]) == [
+        "web-01",
+        "db-01",
+        "cache-01",
+    ]
+
+
+def test_dedupe_after_repeated_host_args():
+    hosts = normalize_hosts(["google.com", "google.com", "github.com"])
+
+    assert dedupe_hosts(hosts) == ["google.com", "github.com"]
+
+
+def test_dedupe_after_comma_separated_host_args():
+    hosts = normalize_hosts(["google.com, github.com, google.com"])
+
+    assert dedupe_hosts(hosts) == ["google.com", "github.com"]
+
+
+def test_dedupe_after_hosts_file_plus_host():
+    hosts_from_file = load_hosts_file(FIXTURES_DIR / "hosts-localhost.txt")
+    hosts = normalize_hosts(["127.0.0.1"] + hosts_from_file)
+
+    assert dedupe_hosts(hosts) == ["127.0.0.1"]
 
 
 def test_load_hosts_file_reads_one_host_per_line():

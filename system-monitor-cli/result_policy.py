@@ -21,6 +21,16 @@ def normalize_hosts(host_args: list[str] | None) -> list[str]:
     return hosts
 
 
+def dedupe_hosts(hosts: list[str]) -> list[str]:
+    deduped = []
+    seen = set()
+    for host in hosts:
+        if host not in seen:
+            deduped.append(host)
+            seen.add(host)
+    return deduped
+
+
 def load_hosts_file(path: Path) -> list[str]:
     hosts = []
     with path.open(encoding="utf-8") as hosts_file:

@@ -58,7 +58,6 @@
 - Add DNS resolution check
 - Add HTTP status check
 - Add TLS certificate expiry check
-- Add host deduplication while preserving operator-provided order
 - Add per-host JSON summaries
 - Add timeout/retry policy
 

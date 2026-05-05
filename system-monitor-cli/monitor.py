@@ -7,7 +7,7 @@ from check_result import CheckResult
 from hardening_checks import check_windows_account_hardening
 from network_checks import check_host_ping, check_port_open
 from output_format import format_details, format_json_results, format_text_result
-from result_policy import EXIT_RUNTIME_ERROR, exit_code_for_results, load_hosts_file, normalize_hosts
+from result_policy import EXIT_RUNTIME_ERROR, dedupe_hosts, exit_code_for_results, load_hosts_file, normalize_hosts
 
 
 def configure_logging(log_file: Path) -> None:
@@ -79,7 +79,7 @@ def main() -> int:
             print(f"[FAIL] could not read hosts file {args.hosts_file}: {exc}", file=sys.stderr)
             return EXIT_RUNTIME_ERROR
 
-    hosts = normalize_hosts((args.host or []) + hosts_from_file)
+    hosts = dedupe_hosts(normalize_hosts((args.host or []) + hosts_from_file))
 
     if not hosts and not args.hardening:
         print("[FAIL] provide --host, --hardening, or both", file=sys.stderr)
