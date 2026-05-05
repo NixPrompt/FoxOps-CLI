@@ -45,7 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--hosts-file",
         type=Path,
-        help="Path to a file containing one hostname or IP address per line.",
+        help="Path to a file containing hostnames or IPs, one per line; comma-separated entries are also accepted.",
     )
     parser.add_argument("--port", type=int, default=443, help="TCP port to check. Default: 443.")
     parser.add_argument("--timeout", type=int, default=3, help="Timeout in seconds. Default: 3.")
