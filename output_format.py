@@ -20,8 +20,9 @@ def format_text_result(result: CheckResult) -> str:
     return f"[{result.status}] {result.check_id} - {result.message}"
 
 
-def format_json_results(results: list[CheckResult]) -> str:
+def format_json_results(results: list[CheckResult], metadata: dict[str, object]) -> str:
     payload = {
+        "metadata": metadata,
         "summary": summarize_results(results),
         "groups": {
             "hosts": _group_results_by_detail(results, "host", HOST_CHECK_NAMES),

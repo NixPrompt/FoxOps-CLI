@@ -47,14 +47,16 @@ Goal: turn checks into artifacts.
 
 - Keep JSON `--output-file` evidence capture documented and tested.
 - Add per-host JSON summaries.
-- Add runner/source metadata to results:
+- Keep run-level source metadata documented and tested:
   - `source=local_runner`
+- Add future source values where they are authoritative:
   - `source=windows_powershell`
   - `source=wsl`
   - `source=linux_native`
-- Add timestamp and command metadata to evidence output.
+- Keep run-level timestamps in JSON metadata documented and tested.
+- Add command metadata to evidence output.
 - Add optional markdown summary report for tickets.
-- Keep the stable JSON schema: `summary`, `groups`, `results`.
+- Keep the stable JSON schema: `metadata`, `summary`, `groups`, `results`.
 
 ## Phase 4: Add Windows And Linux Admin Audit Depth
 

@@ -5,6 +5,7 @@ import socket
 import subprocess
 import sys
 import threading
+from datetime import datetime
 from pathlib import Path
 
 
@@ -24,6 +25,27 @@ def _serve_one_tcp_connection(listener: socket.socket) -> threading.Thread:
     thread = threading.Thread(target=serve, daemon=True)
     thread.start()
     return thread
+
+
+def _assert_metadata(payload: dict) -> None:
+    assert list(payload) == ["metadata", "summary", "groups", "results"]
+    assert set(payload["metadata"]) == {
+        "started_at",
+        "completed_at",
+        "duration_ms",
+        "source",
+        "runner",
+        "platform",
+        "output_schema",
+    }
+    datetime.fromisoformat(payload["metadata"]["started_at"])
+    datetime.fromisoformat(payload["metadata"]["completed_at"])
+    assert isinstance(payload["metadata"]["duration_ms"], int)
+    assert payload["metadata"]["duration_ms"] >= 0
+    assert payload["metadata"]["source"] == "local_runner"
+    assert payload["metadata"]["runner"]
+    assert payload["metadata"]["platform"]
+    assert payload["metadata"]["output_schema"] == "foxops.v1"
 
 
 def test_monitor_json_success_path_reports_expected_cli_structure():
@@ -60,7 +82,7 @@ def test_monitor_json_success_path_reports_expected_cli_structure():
     assert completed.returncode == 0, completed.stderr
 
     payload = json.loads(completed.stdout)
-    assert set(payload) == {"summary", "groups", "results"}
+    _assert_metadata(payload)
     assert set(payload["summary"]) >= {"OK", "WARN", "FAIL"}
     assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
@@ -103,7 +125,7 @@ def test_monitor_json_accepts_hosts_file():
     assert completed.returncode == 0, completed.stderr
 
     payload = json.loads(completed.stdout)
-    assert set(payload) == {"summary", "groups", "results"}
+    _assert_metadata(payload)
     assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
     assert [result["name"] for result in payload["results"]] == ["dns_resolution", "ping", "tcp_port"]

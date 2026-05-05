@@ -4,6 +4,17 @@ from check_result import CheckResult
 from output_format import format_json_results
 
 
+METADATA = {
+    "started_at": "2026-05-05T15:42:10-07:00",
+    "completed_at": "2026-05-05T15:42:14-07:00",
+    "duration_ms": 4120,
+    "source": "local_runner",
+    "runner": "noc-runner-01",
+    "platform": "Windows",
+    "output_schema": "foxops.v1",
+}
+
+
 def test_format_json_results_returns_summary_groups_and_flat_results():
     results = [
         CheckResult(
@@ -43,10 +54,12 @@ def test_format_json_results_returns_summary_groups_and_flat_results():
         ),
     ]
 
-    payload = json.loads(format_json_results(results))
+    payload = json.loads(format_json_results(results, METADATA))
 
+    assert list(payload) == ["metadata", "summary", "groups", "results"]
+    assert payload["metadata"] == METADATA
     assert payload["summary"] == {"OK": 3, "WARN": 1, "FAIL": 1}
-    assert set(payload) == {"summary", "groups", "results"}
+    assert set(payload) == {"metadata", "summary", "groups", "results"}
     assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
     assert list(payload["groups"]["hosts"]) == ["noc-gateway"]
     assert [item["check_id"] for item in payload["groups"]["hosts"]["noc-gateway"]] == [
@@ -125,7 +138,7 @@ def test_format_json_results_keeps_grouped_network_results_in_order_with_flat_re
         ),
     ]
 
-    payload = json.loads(format_json_results(results))
+    payload = json.loads(format_json_results(results, METADATA))
 
     flat_host_results = [
         item

@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from check_result import CheckResult
+from evidence import build_run_metadata, current_monotonic, current_timestamp, elapsed_ms
 from hardening_checks import check_windows_account_hardening
 from network_checks import (
     check_dns_resolution,
@@ -172,6 +173,9 @@ def main() -> int:
         print(f"[FAIL] logging setup failed: {exc}", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
 
+    run_started_at = current_timestamp()
+    run_started_monotonic = current_monotonic()
+
     checks = []
     if hosts:
         checks.extend(run_network_checks(hosts, args.port, args.timeout, args.workers))
@@ -185,8 +189,13 @@ def main() -> int:
     for result in checks:
         log_result(result)
 
+    run_completed_monotonic = current_monotonic()
+    run_completed_at = current_timestamp()
+    run_duration_ms = elapsed_ms(run_started_monotonic, run_completed_monotonic)
+    metadata = build_run_metadata(run_started_at, run_completed_at, run_duration_ms)
+
     if args.output == "json":
-        json_payload = format_json_results(checks)
+        json_payload = format_json_results(checks, metadata)
         if args.output_file:
             try:
                 write_output_file(args.output_file, json_payload)

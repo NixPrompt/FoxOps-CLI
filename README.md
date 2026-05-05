@@ -33,6 +33,7 @@ perform remediation.
   - `OK`, `WARN`, and `FAIL` statuses
   - `actual` and `required` fields where applicable
 - Automation output:
+  - Run-level JSON metadata
   - JSON summary
   - Host-grouped network results
   - Hardening result group
@@ -45,6 +46,7 @@ perform remediation.
 .
 |-- monitor.py            # CLI entry point, logging, orchestration
 |-- check_result.py       # Shared result model and JSON serialization
+|-- evidence.py           # Run-level evidence metadata helpers
 |-- hardening_checks.py   # Read-only Windows account and password policy checks
 |-- monitor_checks.py     # Compatibility exports
 |-- network_checks.py     # DNS, ping, TCP port, HTTP, and TLS checks
@@ -226,10 +228,20 @@ file cannot be written, it prints a clear `[FAIL]` message to stderr and exits
 with runtime error code `2`. Output files are currently supported for JSON runs
 only.
 
-JSON includes a summary, grouped results, and the full flat result list:
+JSON includes run metadata, a summary, grouped results, and the full flat result
+list. Top-level key order is stable: `metadata`, `summary`, `groups`, `results`.
 
 ```json
 {
+  "metadata": {
+    "started_at": "2026-05-05T15:42:10-07:00",
+    "completed_at": "2026-05-05T15:42:14-07:00",
+    "duration_ms": 4120,
+    "source": "local_runner",
+    "runner": "noc-runner-01",
+    "platform": "Windows",
+    "output_schema": "foxops.v1"
+  },
   "summary": {
     "OK": 3,
     "WARN": 0,
