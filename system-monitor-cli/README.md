@@ -17,6 +17,7 @@ perform remediation.
   - ICMP ping
   - TCP port reachability
   - Repeated or comma-separated multi-host input
+  - Hosts-file input for repeatable target lists
 - Windows hardening audit:
   - Built-in `Guest` account disabled
   - Built-in `Administrator` account disabled
@@ -63,6 +64,36 @@ Run multiple host checks:
 ```powershell
 python .\monitor.py --host google.com,github.com,1.1.1.1 --port 443
 ```
+
+Run checks from a hosts file:
+
+```powershell
+python .\monitor.py --hosts-file .\hosts.txt --port 443 --output json
+```
+
+Hosts files accept one hostname or IP per line. Blank lines and lines starting
+with `#` are ignored. Comma-separated entries are also accepted.
+
+Example `hosts.txt`:
+
+```text
+# public targets
+google.com
+github.com
+
+# local edge checks
+192.168.1.1
+1.1.1.1,8.8.8.8
+```
+
+Combine ad hoc hosts with a repeatable hosts file:
+
+```powershell
+python .\monitor.py --host emergency-router.example.com --hosts-file .\hosts.txt --port 443
+```
+
+If the hosts file is missing or unreadable, the CLI exits with runtime error
+code `2`.
 
 Run Windows hardening audit from Windows PowerShell:
 
@@ -195,6 +226,8 @@ Example log line:
 pip install -r requirements-dev.txt
 pytest
 ```
+
+GitHub Actions runs the pytest suite on push and pull request.
 
 ## Roadmap
 

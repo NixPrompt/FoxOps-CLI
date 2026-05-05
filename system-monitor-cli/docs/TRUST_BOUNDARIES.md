@@ -1,4 +1,4 @@
-# Trust Boundaries
+# FoxOps Trust Boundaries
 
 This tool audits specific controls from the point of view of the environment where it runs.
 It does not certify that a whole system is secure.
@@ -16,6 +16,9 @@ Supported runners include Windows PowerShell, WSL, Linux, and macOS.
 
 Network results describe connectivity from the local runner only. A successful check from WSL
 does not prove the same path from native Windows, another host, or the router.
+
+Hosts files are input convenience only. They provide repeatable target lists; they do not imply
+network discovery, CIDR expansion, or authorization to scan a network.
 
 ## Windows Hardening
 
@@ -81,6 +84,8 @@ package installs
 
 If remediation is added later, it should be behind an explicit mode with clear confirmations and
 separate documentation.
+
+Until then, remediation remains explicitly out of scope.
 
 ## Reporting Rules
 
