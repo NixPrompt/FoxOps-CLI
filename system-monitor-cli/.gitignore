@@ -1,3 +1,6 @@
 __pycache__/
 *.py[cod]
 monitor.log
+.pytest_cache/
+pytest-cache-files-*/
+tests/.pytest_tmp/
