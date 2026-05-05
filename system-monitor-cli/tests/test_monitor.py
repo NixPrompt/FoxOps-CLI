@@ -43,3 +43,28 @@ def test_run_network_checks_with_two_workers_preserves_submission_order(monkeypa
 def test_positive_int_rejects_zero_workers():
     with pytest.raises(argparse.ArgumentTypeError):
         monitor.positive_int("0")
+
+
+def test_normalize_urls_strips_empty_values():
+    assert monitor.normalize_urls([" https://example.com ", "", "   ", "http://status.local"]) == [
+        "https://example.com",
+        "http://status.local",
+    ]
+
+
+def test_run_web_checks_preserves_submission_order(monkeypatch):
+    def fake_run_url_checks(url: str, timeout: int) -> list[CheckResult]:
+        return [CheckResult("http_status", url, "OK", "HTTP status 200", {"url": url})]
+
+    monkeypatch.setattr(monitor, "run_url_checks", fake_run_url_checks)
+
+    results = monitor.run_web_checks(
+        ["https://first.example.com", "https://second.example.com"],
+        timeout=1,
+        workers=2,
+    )
+
+    assert [result.check_id for result in results] == [
+        "http_status.https://first.example.com",
+        "http_status.https://second.example.com",
+    ]

@@ -6,7 +6,13 @@ from pathlib import Path
 
 from check_result import CheckResult
 from hardening_checks import check_windows_account_hardening
-from network_checks import check_dns_resolution, check_host_ping, check_port_open
+from network_checks import (
+    check_dns_resolution,
+    check_host_ping,
+    check_http_status,
+    check_port_open,
+    check_tls_certificate_expiry,
+)
 from output_format import format_details, format_json_results, format_text_result
 from result_policy import EXIT_RUNTIME_ERROR, dedupe_hosts, exit_code_for_results, load_hosts_file, normalize_hosts
 
@@ -43,6 +49,12 @@ def positive_int(value: str) -> int:
     return parsed
 
 
+def normalize_urls(url_args: list[str] | None) -> list[str]:
+    if not url_args:
+        return []
+    return [url_arg.strip() for url_arg in url_args if url_arg.strip()]
+
+
 def run_host_checks(host: str, port: int, timeout: int) -> list[CheckResult]:
     return [
         check_dns_resolution(host, timeout),
@@ -51,9 +63,26 @@ def run_host_checks(host: str, port: int, timeout: int) -> list[CheckResult]:
     ]
 
 
+def run_url_checks(url: str, timeout: int) -> list[CheckResult]:
+    return [
+        check_http_status(url, timeout),
+        check_tls_certificate_expiry(url, timeout),
+    ]
+
+
 def run_network_checks(hosts: list[str], port: int, timeout: int, workers: int) -> list[CheckResult]:
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [executor.submit(run_host_checks, host, port, timeout) for host in hosts]
+
+        results = []
+        for future in futures:
+            results.extend(future.result())
+    return results
+
+
+def run_web_checks(urls: list[str], timeout: int, workers: int) -> list[CheckResult]:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(run_url_checks, url, timeout) for url in urls]
 
         results = []
         for future in futures:
@@ -72,6 +101,11 @@ def parse_args() -> argparse.Namespace:
         "--hosts-file",
         type=Path,
         help="Path to a file containing hostnames or IPs, one per line; comma-separated entries are also accepted.",
+    )
+    parser.add_argument(
+        "--url",
+        action="append",
+        help="HTTP or HTTPS URL to check. Repeat for multiple URLs.",
     )
     parser.add_argument("--port", type=int, default=443, help="TCP port to check. Default: 443.")
     parser.add_argument("--timeout", type=int, default=3, help="Timeout in seconds. Default: 3.")
@@ -112,9 +146,10 @@ def main() -> int:
             return EXIT_RUNTIME_ERROR
 
     hosts = dedupe_hosts(normalize_hosts((args.host or []) + hosts_from_file))
+    urls = dedupe_hosts(normalize_urls(args.url))
 
-    if not hosts and not args.hardening:
-        print("[FAIL] provide --host, --hardening, or both", file=sys.stderr)
+    if not hosts and not urls and not args.hardening:
+        print("[FAIL] provide --host, --hosts-file, --url, --hardening, or a combination", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
 
     try:
@@ -123,7 +158,12 @@ def main() -> int:
         print(f"[FAIL] logging setup failed: {exc}", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
 
-    checks = run_network_checks(hosts, args.port, args.timeout, args.workers)
+    checks = []
+    if hosts:
+        checks.extend(run_network_checks(hosts, args.port, args.timeout, args.workers))
+
+    if urls:
+        checks.extend(run_web_checks(urls, args.timeout, args.workers))
 
     if args.hardening:
         checks.extend(check_windows_account_hardening())

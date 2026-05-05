@@ -17,6 +17,8 @@ perform remediation.
   - DNS resolution
   - ICMP ping
   - TCP port reachability
+  - HTTP status checks for URLs
+  - TLS certificate expiry checks for HTTPS URLs
   - Repeated or comma-separated multi-host input
   - Hosts-file input for repeatable target lists
   - Optional bounded network concurrency with deterministic output order
@@ -44,7 +46,7 @@ system-monitor-cli/
   hardening_checks.py   # Read-only Windows account and password policy checks
   monitor.py            # CLI entry point, logging, orchestration
   monitor_checks.py     # Compatibility exports
-  network_checks.py     # DNS, ping, and TCP port checks
+  network_checks.py     # DNS, ping, TCP port, HTTP, and TLS checks
   output_format.py      # Text and JSON renderers
   result_policy.py      # Host normalization, summaries, exit codes
   examples/
@@ -81,6 +83,12 @@ Run checks from a hosts file:
 
 ```powershell
 python .\monitor.py --hosts-file .\hosts.txt --port 443 --output json
+```
+
+Run web checks for an HTTP or HTTPS URL:
+
+```powershell
+python .\monitor.py --url https://example.com --output json
 ```
 
 Try the included sample file:
@@ -146,6 +154,9 @@ setup.
 
 - Network checks are cross-platform and describe connectivity from the runner's
   point of view.
+- URL checks use HTTP `HEAD` requests and read-only TLS certificate inspection.
+- TLS certificate checks run for HTTPS URLs. HTTP URLs report a `WARN` skip for
+  TLS.
 - Windows hardening checks should be run from Windows PowerShell.
 - If hardening cannot run on the current host, the tool reports `WARN` and exits
   cleanly.

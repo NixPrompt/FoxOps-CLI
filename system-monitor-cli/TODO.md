@@ -33,9 +33,6 @@ Goal: someone can clone it, run it, and immediately understand what it does.
 
 Goal: make it feel like a tiny CLI version of how a NOC tech thinks.
 
-- Add DNS resolution check.
-- Add HTTP status check.
-- Add TLS certificate expiry check.
 - Add timeout/retry policy with conservative defaults.
 - Consider optional streaming or fail-fast execution mode for incident workflows.
 - Consider case-insensitive host deduplication while preserving first spelling.
