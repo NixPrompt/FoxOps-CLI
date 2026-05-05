@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from check_result import CheckResult
@@ -35,6 +36,30 @@ def print_result(result: CheckResult) -> None:
     print(format_text_result(result))
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be >= 1")
+    return parsed
+
+
+def run_host_checks(host: str, port: int, timeout: int) -> list[CheckResult]:
+    return [
+        check_host_ping(host, timeout),
+        check_port_open(host, port, timeout),
+    ]
+
+
+def run_network_checks(hosts: list[str], port: int, timeout: int, workers: int) -> list[CheckResult]:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = [executor.submit(run_host_checks, host, port, timeout) for host in hosts]
+
+        results = []
+        for future in futures:
+            results.extend(future.result())
+    return results
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Simple host and TCP port monitoring checks.")
     parser.add_argument(
@@ -49,6 +74,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--port", type=int, default=443, help="TCP port to check. Default: 443.")
     parser.add_argument("--timeout", type=int, default=3, help="Timeout in seconds. Default: 3.")
+    parser.add_argument(
+        "--workers",
+        type=positive_int,
+        default=1,
+        help="Number of concurrent network workers. Default: 1.",
+    )
     parser.add_argument(
         "--output",
         choices=["text", "json"],
@@ -91,10 +122,7 @@ def main() -> int:
         print(f"[FAIL] logging setup failed: {exc}", file=sys.stderr)
         return EXIT_RUNTIME_ERROR
 
-    checks = []
-
-    for host in hosts:
-        checks.extend([check_host_ping(host, args.timeout), check_port_open(host, args.port, args.timeout)])
+    checks = run_network_checks(hosts, args.port, args.timeout, args.workers)
 
     if args.hardening:
         checks.extend(check_windows_account_hardening())

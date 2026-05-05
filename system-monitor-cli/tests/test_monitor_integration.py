@@ -129,3 +129,26 @@ def test_monitor_returns_runtime_error_when_hosts_file_cannot_be_read():
     assert completed.returncode == 2
     assert completed.stdout == ""
     assert "[FAIL] could not read hosts file" in completed.stderr
+
+
+def test_monitor_rejects_zero_workers():
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "monitor.py"),
+            "--host",
+            "127.0.0.1",
+            "--workers",
+            "0",
+            "--log-file",
+            os.devnull,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+
+    assert completed.returncode == 2
+    assert "argument --workers: must be >= 1" in completed.stderr

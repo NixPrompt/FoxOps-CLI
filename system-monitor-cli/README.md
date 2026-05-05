@@ -18,6 +18,7 @@ perform remediation.
   - TCP port reachability
   - Repeated or comma-separated multi-host input
   - Hosts-file input for repeatable target lists
+  - Optional bounded network concurrency with deterministic output order
 - Windows hardening audit:
   - Built-in `Guest` account disabled
   - Built-in `Administrator` account disabled
@@ -112,6 +113,14 @@ Use a custom timeout or log file:
 ```powershell
 python .\monitor.py --host 8.8.8.8 --port 53 --timeout 2 --log-file .\logs\network.log
 ```
+
+Run multi-host checks with bounded network concurrency:
+
+```powershell
+python .\monitor.py --hosts-file .\hosts.txt --port 443 --workers 4 --output json
+```
+
+`--workers` defaults to `1`. Windows hardening checks remain sequential.
 
 On Windows, use `py`, `python`, or a full Python path depending on local PATH
 setup.
