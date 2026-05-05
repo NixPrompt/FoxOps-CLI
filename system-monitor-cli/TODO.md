@@ -61,6 +61,7 @@
 - Consider case-insensitive host deduplication while preserving first spelling
 - Add per-host JSON summaries
 - Add timeout/retry policy
+- Consider optional streaming or fail-fast execution mode for incident workflows
 
 ## Linux / WSL Expansion
 
