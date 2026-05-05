@@ -7,7 +7,7 @@ from check_result import CheckResult
 from hardening_checks import check_windows_account_hardening
 from network_checks import check_host_ping, check_port_open
 from output_format import format_details, format_json_results, format_text_result
-from result_policy import EXIT_RUNTIME_ERROR, exit_code_for_results, normalize_hosts
+from result_policy import EXIT_RUNTIME_ERROR, exit_code_for_results, load_hosts_file, normalize_hosts
 
 
 def configure_logging(log_file: Path) -> None:
@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         action="append",
         help="Hostname or IP address to check. Repeat or comma-separate for multiple hosts.",
     )
+    parser.add_argument(
+        "--hosts-file",
+        type=Path,
+        help="Path to a file containing one hostname or IP address per line.",
+    )
     parser.add_argument("--port", type=int, default=443, help="TCP port to check. Default: 443.")
     parser.add_argument("--timeout", type=int, default=3, help="Timeout in seconds. Default: 3.")
     parser.add_argument(
@@ -66,7 +71,15 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    hosts = normalize_hosts(args.host)
+    hosts_from_file = []
+    if args.hosts_file:
+        try:
+            hosts_from_file = load_hosts_file(args.hosts_file)
+        except OSError as exc:
+            print(f"[FAIL] could not read hosts file {args.hosts_file}: {exc}", file=sys.stderr)
+            return EXIT_RUNTIME_ERROR
+
+    hosts = normalize_hosts((args.host or []) + hosts_from_file)
 
     if not hosts and not args.hardening:
         print("[FAIL] provide --host, --hardening, or both", file=sys.stderr)

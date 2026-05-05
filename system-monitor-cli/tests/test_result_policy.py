@@ -1,5 +1,19 @@
 from check_result import CheckResult
-from result_policy import EXIT_FINDINGS, EXIT_OK, exit_code_for_results, normalize_hosts, summarize_results
+from pathlib import Path
+
+import pytest
+
+from result_policy import (
+    EXIT_FINDINGS,
+    EXIT_OK,
+    exit_code_for_results,
+    load_hosts_file,
+    normalize_hosts,
+    summarize_results,
+)
+
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
 def test_normalize_hosts_accepts_repeated_and_comma_separated_values():
@@ -15,6 +29,19 @@ def test_normalize_hosts_handles_missing_or_empty_input():
     assert normalize_hosts(None) == []
     assert normalize_hosts([]) == []
     assert normalize_hosts([" , "]) == []
+
+
+def test_load_hosts_file_reads_one_host_per_line():
+    assert load_hosts_file(FIXTURES_DIR / "hosts-basic.txt") == ["web-01", "web-02", "10.0.0.5"]
+
+
+def test_load_hosts_file_ignores_comments_and_blank_lines():
+    assert load_hosts_file(FIXTURES_DIR / "hosts-with-comments.txt") == ["edge-01", "edge-02"]
+
+
+def test_load_hosts_file_raises_for_missing_file():
+    with pytest.raises(OSError):
+        load_hosts_file(FIXTURES_DIR / "missing-hosts.txt")
 
 
 def test_summarize_results_counts_standard_statuses_and_preserves_unknowns():

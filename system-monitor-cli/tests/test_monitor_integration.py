@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
 def _serve_one_tcp_connection(listener: socket.socket) -> threading.Thread:
@@ -65,3 +66,66 @@ def test_monitor_json_success_path_reports_expected_cli_structure():
     assert len(payload["results"]) == 2
     assert {result["name"] for result in payload["results"]} == {"ping", "tcp_port"}
     assert all({"check_id", "name", "target", "status", "message", "details"} <= set(result) for result in payload["results"])
+
+
+def test_monitor_json_accepts_hosts_file():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        port = listener.getsockname()[1]
+        server_thread = _serve_one_tcp_connection(listener)
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(PROJECT_ROOT / "monitor.py"),
+                "--hosts-file",
+                str(FIXTURES_DIR / "hosts-localhost.txt"),
+                "--port",
+                str(port),
+                "--timeout",
+                "1",
+                "--output",
+                "json",
+                "--log-file",
+                os.devnull,
+            ],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+
+        server_thread.join(timeout=2)
+
+    assert completed.returncode == 0, completed.stderr
+
+    payload = json.loads(completed.stdout)
+    assert set(payload) == {"summary", "groups", "results"}
+    assert "127.0.0.1" in payload["groups"]["hosts"]
+    assert [result["name"] for result in payload["results"]] == ["ping", "tcp_port"]
+
+
+def test_monitor_returns_runtime_error_when_hosts_file_cannot_be_read():
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(PROJECT_ROOT / "monitor.py"),
+            "--hosts-file",
+            str(FIXTURES_DIR / "missing-hosts.txt"),
+            "--output",
+            "json",
+            "--log-file",
+            os.devnull,
+        ],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+
+    assert completed.returncode == 2
+    assert completed.stdout == ""
+    assert "[FAIL] could not read hosts file" in completed.stderr

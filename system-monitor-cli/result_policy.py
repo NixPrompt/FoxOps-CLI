@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from check_result import CheckResult
 
 
@@ -15,6 +17,16 @@ def normalize_hosts(host_args: list[str] | None) -> list[str]:
         for host in host_arg.split(","):
             cleaned = host.strip()
             if cleaned:
+                hosts.append(cleaned)
+    return hosts
+
+
+def load_hosts_file(path: Path) -> list[str]:
+    hosts = []
+    with path.open(encoding="utf-8") as hosts_file:
+        for line in hosts_file:
+            cleaned = line.strip()
+            if cleaned and not cleaned.startswith("#"):
                 hosts.append(cleaned)
     return hosts
 
