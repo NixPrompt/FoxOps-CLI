@@ -1,4 +1,4 @@
-# FoxOps Audit Tools
+# FoxOps System-Monitor-CLI
 
 A dependency-free Python CLI for auditing network reachability and local Windows
 hardening posture against defined baselines.
