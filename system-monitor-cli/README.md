@@ -172,6 +172,10 @@ setup.
 Hardening mode is audit-only. It reads local Windows state and does not change
 users, password policy, firewall rules, services, registry settings, or packages.
 
+Note: In FoxOps, "hardening" means a read-only posture audit against selected
+baseline expectations. The tool reports observed hardening posture; it does not
+apply hardening, remediate findings, or claim that the system is secure.
+
 Current baseline:
 
 - Guest account: disabled

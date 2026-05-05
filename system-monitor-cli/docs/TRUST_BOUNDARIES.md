@@ -31,6 +31,10 @@ Windows hardening checks trust Windows-native state and should be run from Windo
 python .\monitor.py --hardening --output json
 ```
 
+Note: In FoxOps, "hardening" means a read-only posture audit against selected
+baseline expectations. The tool reports observed hardening posture; it does not
+apply hardening, remediate findings, or claim that the system is secure.
+
 These checks use Windows commands such as:
 
 ```text
