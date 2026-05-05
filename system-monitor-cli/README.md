@@ -46,6 +46,10 @@ system-monitor-cli/
   network_checks.py     # Ping and TCP port checks
   output_format.py      # Text and JSON renderers
   result_policy.py      # Host normalization, summaries, exit codes
+  examples/
+    hosts.txt           # Sample hosts-file input
+    sample-output.json  # Representative JSON output
+    sample-monitor.log  # Representative log output
   docs/
     TRUST_BOUNDARIES.md # Runtime authority and audit-only boundaries
   TODO.md               # Project roadmap
@@ -70,6 +74,12 @@ Run checks from a hosts file:
 
 ```powershell
 python .\monitor.py --hosts-file .\hosts.txt --port 443 --output json
+```
+
+Try the included sample file:
+
+```powershell
+python .\monitor.py --hosts-file .\examples\hosts.txt --port 443 --workers 4 --output json
 ```
 
 Hosts files accept one hostname or IP per line. Blank lines and lines starting
@@ -204,6 +214,9 @@ JSON includes a summary, grouped results, and the full flat result list:
 }
 ```
 
+See [`examples/sample-output.json`](examples/sample-output.json) for a complete
+network-only JSON example.
+
 ## Logging
 
 Each result is written to the selected log file with a timestamp and stable
@@ -220,6 +233,9 @@ Example log line:
 ```text
 2026-05-04T15:48:22-0700 INFO check=account_policy.min_password_length status=FAIL actual=0 required=>=12 message=Minimum password length is 0; required >= 12
 ```
+
+See [`examples/sample-monitor.log`](examples/sample-monitor.log) for a short
+network-check log example.
 
 ## Exit Codes
 

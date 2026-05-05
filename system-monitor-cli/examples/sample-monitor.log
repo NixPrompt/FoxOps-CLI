@@ -1,0 +1,2 @@
+2026-05-04T15:48:22-0700 INFO check=ping.example.com status=OK host=example.com timeout=3 message=host responded to ping
+2026-05-04T15:48:22-0700 INFO check=tcp_port.example.com:443 status=OK host=example.com port=443 timeout=3 message=port is open

@@ -1,0 +1,62 @@
+{
+  "summary": {
+    "OK": 2,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "groups": {
+    "hosts": {
+      "example.com": [
+        {
+          "check_id": "ping.example.com",
+          "name": "ping",
+          "target": "example.com",
+          "status": "OK",
+          "message": "host responded to ping",
+          "details": {
+            "host": "example.com",
+            "timeout": 3
+          }
+        },
+        {
+          "check_id": "tcp_port.example.com:443",
+          "name": "tcp_port",
+          "target": "example.com:443",
+          "status": "OK",
+          "message": "port is open",
+          "details": {
+            "host": "example.com",
+            "port": 443,
+            "timeout": 3
+          }
+        }
+      ]
+    },
+    "hardening": []
+  },
+  "results": [
+    {
+      "check_id": "ping.example.com",
+      "name": "ping",
+      "target": "example.com",
+      "status": "OK",
+      "message": "host responded to ping",
+      "details": {
+        "host": "example.com",
+        "timeout": 3
+      }
+    },
+    {
+      "check_id": "tcp_port.example.com:443",
+      "name": "tcp_port",
+      "target": "example.com:443",
+      "status": "OK",
+      "message": "port is open",
+      "details": {
+        "host": "example.com",
+        "port": 443,
+        "timeout": 3
+      }
+    }
+  ]
+}

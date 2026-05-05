@@ -1,0 +1,10 @@
+# Public service checks
+google.com
+github.com
+
+# Common resolver checks
+1.1.1.1
+8.8.8.8
+
+# Comma-separated entries are accepted too
+example.com,iana.org
