@@ -54,6 +54,7 @@ system-monitor-cli/
     sample-output.json  # Representative JSON output
     sample-monitor.log  # Representative log output
   docs/
+    AGENT_RULES.md      # Safety rules for future agent changes
     TRUST_BOUNDARIES.md # Runtime authority and audit-only boundaries
   TODO.md               # Project roadmap
   README.md
@@ -163,6 +164,8 @@ setup.
 - If hardening cannot run on the current host, the tool reports `WARN` and exits
   cleanly.
 - Remediation is explicitly out of scope.
+- Future automated changes should follow
+  [`docs/AGENT_RULES.md`](docs/AGENT_RULES.md).
 
 ## Hardening Baseline
 

@@ -20,6 +20,9 @@ does not prove the same path from native Windows, another host, or the router.
 Hosts files are input convenience only. They provide repeatable target lists; they do not imply
 network discovery, CIDR expansion, or authorization to scan a network.
 
+FoxOps checks explicitly provided hosts and URLs only. It does not expand CIDR ranges,
+discover hosts, or scan networks.
+
 ## Windows Hardening
 
 Windows hardening checks trust Windows-native state and should be run from Windows PowerShell:
@@ -86,6 +89,8 @@ If remediation is added later, it should be behind an explicit mode with clear c
 separate documentation.
 
 Until then, remediation remains explicitly out of scope.
+
+Future automated changes should also follow [AGENT_RULES.md](AGENT_RULES.md).
 
 ## Reporting Rules
 
