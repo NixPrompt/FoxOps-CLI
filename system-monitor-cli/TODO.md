@@ -27,6 +27,8 @@ Goal: someone can clone it, run it, and immediately understand what it does.
   - Linux pytest run
   - Windows pytest run
   - import/smoke test for `monitor.py`
+- Normalize no-input exit reporting across shells.
+- Add current test-count note to README when the suite stabilizes.
 - Add sample Windows command-output fixtures for hardening parser tests.
 
 ## Phase 2: Add NOC Runbook Features
