@@ -16,10 +16,6 @@ jobs:
           - ubuntu-latest
           - windows-latest
 
-    defaults:
-      run:
-        working-directory: system-monitor-cli
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
