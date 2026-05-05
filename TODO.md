@@ -45,7 +45,7 @@ Goal: make it feel like a tiny CLI version of how a NOC tech thinks.
 
 Goal: turn checks into artifacts.
 
-- Add `--output-file` for JSON evidence capture.
+- Keep JSON `--output-file` evidence capture documented and tested.
 - Add per-host JSON summaries.
 - Add runner/source metadata to results:
   - `source=local_runner`
@@ -72,7 +72,7 @@ Goal: expand audit coverage while keeping it safe and read-only.
   - SSH password auth setting
   - listening ports with `ss`
   - local user and group context
-- Add WSL-aware messages:
+- Keep WSL-aware messages explicit as Linux audit support expands:
   - WSL can audit Linux state
   - WSL should not claim Windows authority unless bridging to PowerShell
 - Do not add SSH remote audit until local Linux behavior is mature.
