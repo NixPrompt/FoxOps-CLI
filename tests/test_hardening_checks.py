@@ -4,6 +4,8 @@ from check_result import CheckResult
 
 def test_check_hardening_capability_warns_on_non_windows(monkeypatch):
     monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(hardening_checks, "_read_linux_kernel_release", lambda: "6.8.0-generic")
+    monkeypatch.setattr(hardening_checks.os, "environ", {})
 
     result = hardening_checks.check_hardening_capability()
 
@@ -11,8 +13,78 @@ def test_check_hardening_capability_warns_on_non_windows(monkeypatch):
         "capability",
         "hardening",
         "WARN",
-        "skipped: Windows hardening checks only run on Windows",
+        "skipped: Windows hardening checks only run from Windows PowerShell; this runner is linux",
+        {
+            "source": "linux",
+            "reason": "not_windows",
+            "action": "run_from_windows_powershell",
+        },
     )
+
+
+def test_check_hardening_capability_explains_wsl_skip_from_environment(monkeypatch):
+    monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(hardening_checks.os, "environ", {"WSL_DISTRO_NAME": "Ubuntu"})
+    monkeypatch.setattr(hardening_checks, "_read_linux_kernel_release", lambda: "6.8.0-generic")
+
+    result = hardening_checks.check_hardening_capability()
+
+    assert result == CheckResult(
+        "capability",
+        "hardening",
+        "WARN",
+        (
+            "skipped: WSL is a Linux environment and is not authoritative for "
+            "Windows local users or password policy; run from Windows PowerShell instead"
+        ),
+        {
+            "source": "wsl",
+            "reason": "not_authoritative_for_windows_hardening",
+            "action": "run_from_windows_powershell",
+        },
+    )
+
+
+def test_check_hardening_capability_explains_wsl_skip_from_kernel_release(monkeypatch):
+    monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(hardening_checks.os, "environ", {})
+    monkeypatch.setattr(hardening_checks, "_read_linux_kernel_release", lambda: "5.15.90.1-microsoft-standard-WSL2")
+
+    result = hardening_checks.check_hardening_capability()
+
+    assert result.details["source"] == "wsl"
+    assert result.details["reason"] == "not_authoritative_for_windows_hardening"
+    assert "run from Windows PowerShell instead" in result.message
+
+
+def test_check_hardening_capability_warns_on_macos_without_wsl_probe(monkeypatch):
+    monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(hardening_checks.os, "environ", {"WSL_DISTRO_NAME": "Ubuntu"})
+
+    result = hardening_checks.check_hardening_capability()
+
+    assert result == CheckResult(
+        "capability",
+        "hardening",
+        "WARN",
+        "skipped: Windows hardening checks only run from Windows PowerShell; this runner is darwin",
+        {
+            "source": "darwin",
+            "reason": "not_windows",
+            "action": "run_from_windows_powershell",
+        },
+    )
+
+
+def test_check_hardening_capability_does_not_treat_wsl_substring_as_wsl(monkeypatch):
+    monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(hardening_checks.os, "environ", {})
+    monkeypatch.setattr(hardening_checks, "_read_linux_kernel_release", lambda: "6.8.0-newsletter-build")
+
+    result = hardening_checks.check_hardening_capability()
+
+    assert result.details["source"] == "linux"
+    assert result.details["reason"] == "not_windows"
 
 
 def test_check_hardening_capability_warns_when_net_command_is_missing(monkeypatch):
@@ -21,7 +93,32 @@ def test_check_hardening_capability_warns_when_net_command_is_missing(monkeypatc
 
     result = hardening_checks.check_hardening_capability()
 
-    assert result == CheckResult("capability", "hardening", "WARN", "skipped: net command not found")
+    assert result == CheckResult(
+        "capability",
+        "hardening",
+        "WARN",
+        "skipped: net command not found; run from a Windows PowerShell session with Windows system commands on PATH",
+        {
+            "source": "windows",
+            "reason": "net_command_not_found",
+            "action": "run_from_windows_powershell_with_net_on_path",
+        },
+    )
+
+
+def test_check_hardening_capability_reports_windows_available(monkeypatch):
+    monkeypatch.setattr(hardening_checks.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(hardening_checks.shutil, "which", lambda command: "net" if command == "net" else None)
+
+    result = hardening_checks.check_hardening_capability()
+
+    assert result == CheckResult(
+        "capability",
+        "hardening",
+        "OK",
+        "Windows hardening checks available",
+        {"source": "windows"},
+    )
 
 
 def test_check_windows_account_hardening_returns_capability_when_command_execution_fails(monkeypatch):

@@ -4,6 +4,7 @@ import platform
 import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 
 from check_result import CheckResult
 
@@ -13,6 +14,7 @@ LOCKOUT_THRESHOLD_MIN = 1
 LOCKOUT_THRESHOLD_MAX = 10
 LOCKOUT_DURATION_MINUTES = 10
 LOCKOUT_WINDOW_MINUTES = 10
+WSL_ENVIRONMENT_MARKERS = ("WSL_DISTRO_NAME", "WSL_INTEROP")
 
 
 @dataclass
@@ -32,18 +34,75 @@ class NetAccountsPolicy:
 
 def check_hardening_capability() -> CheckResult:
     """Report whether Windows hardening checks can run on this host."""
-    if platform.system().lower() != "windows":
+    system = platform.system().lower()
+    if system != "windows":
+        if _is_wsl_environment():
+            return CheckResult(
+                "capability",
+                "hardening",
+                "WARN",
+                (
+                    "skipped: WSL is a Linux environment and is not authoritative for "
+                    "Windows local users or password policy; run from Windows PowerShell instead"
+                ),
+                {
+                    "source": "wsl",
+                    "reason": "not_authoritative_for_windows_hardening",
+                    "action": "run_from_windows_powershell",
+                },
+            )
+
         return CheckResult(
             "capability",
             "hardening",
             "WARN",
-            "skipped: Windows hardening checks only run on Windows",
+            f"skipped: Windows hardening checks only run from Windows PowerShell; this runner is {system}",
+            {
+                "source": system or "unknown",
+                "reason": "not_windows",
+                "action": "run_from_windows_powershell",
+            },
         )
 
     if shutil.which("net") is None:
-        return CheckResult("capability", "hardening", "WARN", "skipped: net command not found")
+        return CheckResult(
+            "capability",
+            "hardening",
+            "WARN",
+            "skipped: net command not found; run from a Windows PowerShell session with Windows system commands on PATH",
+            {
+                "source": "windows",
+                "reason": "net_command_not_found",
+                "action": "run_from_windows_powershell_with_net_on_path",
+            },
+        )
 
-    return CheckResult("capability", "hardening", "OK", "Windows hardening checks available")
+    return CheckResult(
+        "capability",
+        "hardening",
+        "OK",
+        "Windows hardening checks available",
+        {"source": "windows"},
+    )
+
+
+def _is_wsl_environment() -> bool:
+    if platform.system().lower() != "linux":
+        return False
+
+    if any(os.environ.get(marker) for marker in WSL_ENVIRONMENT_MARKERS):
+        return True
+
+    kernel_release = _read_linux_kernel_release().lower()
+    kernel_tokens = kernel_release.replace("_", "-").replace(".", "-").split("-")
+    return bool({"microsoft", "wsl", "wsl2"} & set(kernel_tokens))
+
+
+def _read_linux_kernel_release() -> str:
+    try:
+        return Path("/proc/sys/kernel/osrelease").read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
 
 
 def check_windows_account_hardening() -> list[CheckResult]:

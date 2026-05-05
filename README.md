@@ -164,6 +164,9 @@ setup.
 - Windows hardening checks should be run from Windows PowerShell.
 - If hardening cannot run on the current host, the tool reports `WARN` and exits
   cleanly.
+- Under WSL, hardening reports `source=wsl`, explains that WSL is not
+  authoritative for Windows local users or password policy, and tells operators
+  to rerun from Windows PowerShell.
 - Remediation is explicitly out of scope.
 - Future automated changes should follow
   [`docs/AGENT_RULES.md`](docs/AGENT_RULES.md).
@@ -371,6 +374,15 @@ python .\monitor.py --hardening --output json
 
 If you run from WSL or another non-Windows context, FoxOps reports a `WARN`
 capability result instead of claiming Windows authority.
+
+WSL output is intentionally specific:
+
+```text
+[WARN] capability.hardening source=wsl reason=not_authoritative_for_windows_hardening action=run_from_windows_powershell - skipped: WSL is a Linux environment and is not authoritative for Windows local users or password policy; run from Windows PowerShell instead
+```
+
+Native Linux and macOS also skip Windows hardening with `WARN`, but they report
+their own runner source, such as `source=linux` or `source=darwin`.
 
 ### Missing Hosts File
 

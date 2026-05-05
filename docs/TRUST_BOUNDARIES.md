@@ -47,6 +47,14 @@ Do not treat WSL as an authoritative Windows hardening context. WSL can see Wind
 `/mnt/c`, but it does not natively own Windows local users, password policy, Defender state,
 firewall policy, SMB server configuration, or services.
 
+When Windows hardening is requested from WSL, FoxOps must skip the Windows audit and report
+`source=wsl`, `reason=not_authoritative_for_windows_hardening`, and
+`action=run_from_windows_powershell`. Operators should rerun:
+
+```powershell
+python .\monitor.py --hardening --output json
+```
+
 If WSL explicitly calls `powershell.exe`, that should be treated as a Windows PowerShell bridge,
 not native Linux state.
 
@@ -102,7 +110,7 @@ The tool should report what it actually observed:
 
 ```text
 [OK] network.google.com:443 source=local_runner - TCP connection succeeded
-[WARN] windows_hardening source=wsl - skipped; run from Windows PowerShell
+[WARN] capability.hardening source=wsl reason=not_authoritative_for_windows_hardening action=run_from_windows_powershell - skipped: WSL is a Linux environment and is not authoritative for Windows local users or password policy; run from Windows PowerShell instead
 [FAIL] account_policy.min_password_length actual=0 required=>=12
 ```
 
