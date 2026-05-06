@@ -3,5 +3,7 @@ __pycache__/
 monitor.log
 .foxops-test-output/
 .pytest_cache/
+.pytest_tmp/
 pytest-cache-files-*/
+pytest_tmp_run/
 tests/.pytest_tmp/
