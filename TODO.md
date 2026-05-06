@@ -46,7 +46,7 @@ Goal: make it feel like a tiny CLI version of how a NOC tech thinks.
 Goal: turn checks into artifacts.
 
 - Keep JSON `--output-file` evidence capture documented and tested.
-- Add per-host JSON summaries.
+- Keep per-host JSON summaries documented and tested.
 - Keep run-level source metadata documented and tested:
   - `source=local_runner`
 - Add future source values where they are authoritative:

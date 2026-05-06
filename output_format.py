@@ -21,11 +21,13 @@ def format_text_result(result: CheckResult) -> str:
 
 
 def format_json_results(results: list[CheckResult], metadata: dict[str, object]) -> str:
+    host_groups = _group_results_by_detail(results, "host", HOST_CHECK_NAMES)
     payload = {
         "metadata": metadata,
         "summary": summarize_results(results),
         "groups": {
-            "hosts": _group_results_by_detail(results, "host", HOST_CHECK_NAMES),
+            "hosts": host_groups,
+            "host_summaries": _summarize_results_by_detail(results, "host", HOST_CHECK_NAMES),
             "urls": _group_results_by_detail(results, "url", URL_CHECK_NAMES),
             "hardening": [
                 result.to_dict()
@@ -48,3 +50,22 @@ def _group_results_by_detail(results: list[CheckResult], detail_key: str, check_
             continue
         grouped.setdefault(str(group_value), []).append(result.to_dict())
     return grouped
+
+
+def _summarize_results_by_detail(
+    results: list[CheckResult],
+    detail_key: str,
+    check_names: set[str],
+) -> dict[str, dict[str, int]]:
+    grouped: dict[str, list[CheckResult]] = {}
+    for result in results:
+        if result.name not in check_names:
+            continue
+        group_value = result.details.get(detail_key)
+        if not group_value:
+            continue
+        grouped.setdefault(str(group_value), []).append(result)
+    return {
+        group_name: summarize_results(group_results)
+        for group_name, group_results in grouped.items()
+    }

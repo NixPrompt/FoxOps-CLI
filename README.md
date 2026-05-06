@@ -36,6 +36,7 @@ perform remediation.
   - Run-level JSON metadata
   - JSON summary
   - Host-grouped network results
+  - Per-host grouped summaries
   - Hardening result group
   - Flat result list
   - Optional JSON file output with parent directory creation
@@ -289,6 +290,13 @@ list. Top-level key order is stable: `metadata`, `summary`, `groups`, `results`.
           }
         }
       ]
+    },
+    "host_summaries": {
+      "example.com": {
+        "OK": 3,
+        "WARN": 0,
+        "FAIL": 0
+      }
     },
     "urls": {},
     "hardening": []

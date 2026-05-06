@@ -84,8 +84,10 @@ def test_monitor_json_success_path_reports_expected_cli_structure():
     payload = json.loads(completed.stdout)
     _assert_metadata(payload)
     assert set(payload["summary"]) >= {"OK", "WARN", "FAIL"}
-    assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
+    assert set(payload["groups"]) == {"hosts", "host_summaries", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
+    assert isinstance(payload["groups"]["hosts"]["127.0.0.1"], list)
+    assert "127.0.0.1" in payload["groups"]["host_summaries"]
     assert len(payload["results"]) == 3
     assert [result["name"] for result in payload["results"]] == ["dns_resolution", "ping", "tcp_port"]
     assert all({"check_id", "name", "target", "status", "message", "details"} <= set(result) for result in payload["results"])
@@ -126,8 +128,10 @@ def test_monitor_json_accepts_hosts_file():
 
     payload = json.loads(completed.stdout)
     _assert_metadata(payload)
-    assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
+    assert set(payload["groups"]) == {"hosts", "host_summaries", "urls", "hardening"}
     assert "127.0.0.1" in payload["groups"]["hosts"]
+    assert isinstance(payload["groups"]["hosts"]["127.0.0.1"], list)
+    assert "127.0.0.1" in payload["groups"]["host_summaries"]
     assert [result["name"] for result in payload["results"]] == ["dns_resolution", "ping", "tcp_port"]
 
 

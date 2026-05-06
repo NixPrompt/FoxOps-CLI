@@ -60,8 +60,11 @@ def test_format_json_results_returns_summary_groups_and_flat_results():
     assert payload["metadata"] == METADATA
     assert payload["summary"] == {"OK": 3, "WARN": 1, "FAIL": 1}
     assert set(payload) == {"metadata", "summary", "groups", "results"}
-    assert set(payload["groups"]) == {"hosts", "urls", "hardening"}
+    assert list(payload["groups"]) == ["hosts", "host_summaries", "urls", "hardening"]
     assert list(payload["groups"]["hosts"]) == ["noc-gateway"]
+    assert payload["groups"]["host_summaries"] == {
+        "noc-gateway": {"OK": 1, "WARN": 0, "FAIL": 1}
+    }
     assert [item["check_id"] for item in payload["groups"]["hosts"]["noc-gateway"]] == [
         "ping.noc-gateway",
         "tcp_port.noc-gateway:443",
@@ -92,6 +95,7 @@ def test_format_json_results_returns_summary_groups_and_flat_results():
     assert payload["groups"]["hosts"]["noc-gateway"][0] == payload["results"][0]
     assert payload["groups"]["hardening"][0] == payload["results"][2]
     assert payload["groups"]["urls"]["https://noc.example.com/health"][0] == payload["results"][3]
+    assert isinstance(payload["groups"]["hosts"]["noc-gateway"], list)
 
 
 def test_format_json_results_keeps_grouped_network_results_in_order_with_flat_results():
@@ -163,3 +167,24 @@ def test_format_json_results_keeps_grouped_network_results_in_order_with_flat_re
 
     assert grouped_host_results == flat_host_results
     assert grouped_url_results == flat_url_results
+
+
+def test_format_json_results_summarizes_multiple_hosts_without_changing_host_groups():
+    results = [
+        CheckResult("dns_resolution", "edge-01", "OK", "resolved", {"host": "edge-01"}),
+        CheckResult("ping", "edge-01", "WARN", "ping unavailable", {"host": "edge-01"}),
+        CheckResult("tcp_port", "edge-01:443", "FAIL", "connection refused", {"host": "edge-01", "port": 443}),
+        CheckResult("dns_resolution", "edge-02", "OK", "resolved", {"host": "edge-02"}),
+        CheckResult("ping", "edge-02", "OK", "host responded", {"host": "edge-02"}),
+        CheckResult("tcp_port", "edge-02:443", "OK", "port open", {"host": "edge-02", "port": 443}),
+    ]
+
+    payload = json.loads(format_json_results(results, METADATA))
+
+    assert list(payload["groups"]["hosts"]) == ["edge-01", "edge-02"]
+    assert list(payload["groups"]["host_summaries"]) == ["edge-01", "edge-02"]
+    assert all(isinstance(group, list) for group in payload["groups"]["hosts"].values())
+    assert payload["groups"]["host_summaries"] == {
+        "edge-01": {"OK": 1, "WARN": 1, "FAIL": 1},
+        "edge-02": {"OK": 3, "WARN": 0, "FAIL": 0},
+    }

@@ -56,6 +56,13 @@
         }
       ]
     },
+    "host_summaries": {
+      "example.com": {
+        "OK": 3,
+        "WARN": 0,
+        "FAIL": 0
+      }
+    },
     "urls": {},
     "hardening": []
   },
