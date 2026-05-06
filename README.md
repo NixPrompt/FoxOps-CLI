@@ -59,6 +59,7 @@ perform remediation.
 |   `-- sample-monitor.log
 |-- docs/
 |   |-- AGENT_RULES.md
+|   |-- SMOKE_TESTS.md
 |   `-- TRUST_BOUNDARIES.md
 |-- tests/
 |-- TODO.md
@@ -381,6 +382,9 @@ network-check log example.
 pip install -r requirements-dev.txt
 pytest
 ```
+
+For manual validation before larger merges, see
+[`docs/SMOKE_TESTS.md`](docs/SMOKE_TESTS.md).
 
 GitHub Actions runs the pytest suite on push and pull request.
 

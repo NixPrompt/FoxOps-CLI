@@ -370,7 +370,7 @@ def _extract_int_value(output: str, label: str) -> int | None:
         return None
 
     first_token = value.split()[0]
-    if first_token.lower() == "none":
+    if first_token.lower() in {"none", "never"}:
         return 0
 
     try:

@@ -1,5 +1,10 @@
+from pathlib import Path
+
 import hardening_checks
 from check_result import CheckResult
+
+
+FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
 def test_check_hardening_capability_warns_on_non_windows(monkeypatch):
@@ -186,6 +191,64 @@ def test_get_net_accounts_policy_returns_none_when_subprocess_fails(monkeypatch)
     assert result is None
 
 
+def test_get_local_user_with_net_parses_enabled_fixture(monkeypatch):
+    output = (FIXTURES_DIR / "windows-net-user-enabled.txt").read_text(encoding="utf-8")
+
+    monkeypatch.setattr(hardening_checks, "_run_command", lambda command: (0, output))
+
+    result = hardening_checks._get_local_user_with_net("Guest")
+
+    assert result == hardening_checks.LocalUserState(
+        name="Guest",
+        enabled=True,
+        password_required=False,
+    )
+
+
+def test_get_local_user_with_net_parses_disabled_fixture(monkeypatch):
+    output = (FIXTURES_DIR / "windows-net-user-disabled.txt").read_text(encoding="utf-8")
+
+    monkeypatch.setattr(hardening_checks, "_run_command", lambda command: (0, output))
+
+    result = hardening_checks._get_local_user_with_net("Administrator")
+
+    assert result == hardening_checks.LocalUserState(
+        name="Administrator",
+        enabled=False,
+        password_required=True,
+    )
+
+
+def test_get_net_accounts_policy_parses_baseline_ok_fixture(monkeypatch):
+    output = (FIXTURES_DIR / "windows-net-accounts-baseline-ok.txt").read_text(encoding="utf-8")
+
+    monkeypatch.setattr(hardening_checks, "_run_command", lambda command: (0, output))
+
+    result = hardening_checks._get_net_accounts_policy()
+
+    assert result == hardening_checks.NetAccountsPolicy(
+        min_password_length=14,
+        lockout_threshold=5,
+        lockout_duration=15,
+        lockout_window=15,
+    )
+
+
+def test_get_net_accounts_policy_parses_weak_fixture(monkeypatch):
+    output = (FIXTURES_DIR / "windows-net-accounts-baseline-weak.txt").read_text(encoding="utf-8")
+
+    monkeypatch.setattr(hardening_checks, "_run_command", lambda command: (0, output))
+
+    result = hardening_checks._get_net_accounts_policy()
+
+    assert result == hardening_checks.NetAccountsPolicy(
+        min_password_length=0,
+        lockout_threshold=0,
+        lockout_duration=0,
+        lockout_window=0,
+    )
+
+
 def test_get_local_user_with_powershell_returns_none_for_unexpected_output(monkeypatch):
     monkeypatch.setattr(hardening_checks.shutil, "which", lambda command: "powershell" if command == "powershell" else None)
 
@@ -204,6 +267,7 @@ def test_get_local_user_with_powershell_returns_none_for_unexpected_output(monke
 def test_extract_int_value_handles_none_and_numeric_values():
     assert hardening_checks._extract_int_value("Some other label 5", "Minimum password length") is None
     assert hardening_checks._extract_int_value("Minimum password length               None", "Minimum password length") == 0
+    assert hardening_checks._extract_int_value("Lockout threshold                    Never", "Lockout threshold") == 0
     assert hardening_checks._extract_int_value("Minimum password length               14", "Minimum password length") == 14
 
 

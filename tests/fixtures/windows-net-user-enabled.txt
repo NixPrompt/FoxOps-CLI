@@ -1,0 +1,10 @@
+User name                    Guest
+Full Name                    Guest
+Account active               Yes
+Account expires              Never
+Password last set            5/5/2026 8:00:00 AM
+Password expires             Never
+Password changeable          5/5/2026 8:00:00 AM
+Password required            No
+User may change password     Yes
+The command completed successfully.
