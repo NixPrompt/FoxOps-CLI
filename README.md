@@ -7,6 +7,17 @@ The tool is designed for NOC/SOC-style checks: readable console output,
 structured JSON for automation, timestamped logs, clear exit codes, and no
 automatic remediation.
 
+## Mission Statement
+
+FoxOps-CLI helps operators turn small, explicit infrastructure questions into
+repeatable evidence. It should stay safe to run, simple to explain, and useful
+under pressure: read-only checks, deterministic output, clear failure messages,
+and artifacts that can be pasted into tickets or reviewed later.
+
+The project favors trustworthy observations over broad claims. FoxOps reports
+what the local runner can actually see; it does not certify that a system is
+secure, remediate findings, or scan targets that were not explicitly provided.
+
 Disclaimer: this tool reports specific observed findings from the runner's point
 of view. It does not prove a system is secure, replace endpoint protection, or
 perform remediation.
